@@ -1,1 +1,38 @@
+body {
+    margin: 0;
+    background: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
 
+h1 {
+    margin: 20px;
+    color: orange;
+}
+
+#juego {
+    position: relative;
+    width: 90%;
+    max-width: 900px;
+    height: 500px;
+    margin: auto;
+    background: #222;
+    border: 3px solid orange;
+    overflow: hidden;
+}
+
+#objetivo {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background: red;
+    border-radius: 50%;
+    left: 50%;
+    top: 50%;
+    cursor: crosshair;
+}
+
+h2 {
+    color: #ff9800;
+}
