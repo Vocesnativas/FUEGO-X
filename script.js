@@ -1,8 +1,8 @@
-/* =====================================================
-   FUEGO X 3.0
+/* =========================================================
+   FUEGO X 2.0
    ARENA ARCADE
-   5 JUEGOS FUNCIONALES
-===================================================== */
+   5 JUEGOS FUNCIONANDO
+========================================================= */
 
 const menuArcade = document.getElementById("menu-arcade");
 const panelJuego = document.getElementById("panel-juego");
@@ -32,14 +32,17 @@ const nivelTexto = document.getElementById("nivel");
 const vidasTexto = document.getElementById("vidas");
 const tiempoTexto = document.getElementById("tiempo");
 const barra = document.getElementById("barra");
+
 const recordTexto = document.getElementById("record");
 
 const puntuacionFinal = document.getElementById("puntuacion-final");
 const nivelFinal = document.getElementById("nivel-final");
 const comboFinal = document.getElementById("combo-final");
 const mensajeFinal = document.getElementById("mensaje-final");
+
 const mensajeNivel = document.getElementById("mensaje-nivel");
 const mensajeCombo = document.getElementById("mensaje-combo");
+
 const medalla = document.getElementById("medalla");
 const iconoFinal = document.getElementById("icono-final");
 
@@ -53,9 +56,9 @@ const descripcionInicio = document.getElementById("descripcion-inicio");
 const reglasInicio = document.getElementById("reglas-inicio");
 
 
-/* =====================================================
-   CONFIGURACIÓN
-===================================================== */
+/* =========================================================
+   JUEGOS
+========================================================= */
 
 const juegos = {
 
@@ -97,9 +100,9 @@ const juegos = {
 };
 
 
-/* =====================================================
+/* =========================================================
    VARIABLES
-===================================================== */
+========================================================= */
 
 let juegoActual = "objetivo";
 
@@ -115,16 +118,17 @@ let juegoActivo = false;
 let temporizador = null;
 let movimiento = null;
 let bonificacionTimer = null;
-let retoTimer = null;
-
-let estadoReto = null;
 
 let record = 0;
 
+let juegoDatos = {};
 
-/* =====================================================
+recordTexto.textContent = "0";
+
+
+/* =========================================================
    SONIDO
-===================================================== */
+========================================================= */
 
 let audioContext = null;
 
@@ -174,27 +178,9 @@ function sonido(frecuencia, duracion = 0.08) {
 }
 
 
-/* =====================================================
-   RÉCORD
-===================================================== */
-
-function cargarRecord() {
-
-    record =
-        Number(
-            localStorage.getItem(
-                "fuegoXRecord_" + juegoActual
-            )
-        ) || 0;
-
-    recordTexto.textContent = record;
-
-}
-
-
-/* =====================================================
-   SELECCIÓN DE JUEGO
-===================================================== */
+/* =========================================================
+   SELECCIONAR JUEGO
+========================================================= */
 
 tarjetasJuego.forEach(tarjeta => {
 
@@ -215,11 +201,11 @@ function seleccionarJuego(tipo) {
 
     detenerJuego();
 
+    juegoActivo = false;
+
     juegoActual = tipo;
 
     const juego = juegos[tipo];
-
-    juegoActivo = false;
 
     objetivo.style.display = "none";
     bonificacion.style.display = "none";
@@ -246,28 +232,11 @@ function seleccionarJuego(tipo) {
         juego.descripcion +
         ". Consigue puntos y supera tu récord.";
 
-    reglasInicio.innerHTML = obtenerReglas(tipo);
-
-    cargarRecord();
-
-    menuArcade.classList.add("oculto");
-
-    panelJuego.classList.remove("oculto");
-
-    pantallaFinal.classList.add("oculto");
-
-    pantallaInicio.classList.remove("oculto");
-
-}
-
-
-function obtenerReglas(tipo) {
-
     if (tipo === "objetivo") {
 
-        return `
+        reglasInicio.innerHTML = `
             <div>🎯 <b>ACERTA</b> los objetivos</div>
-            <div>🔥 <b>CREA COMBOS</b> para multiplicar puntos</div>
+            <div>🔥 <b>CREA COMBOS</b></div>
             <div>⭐ <b>CAPTURA BONIFICACIONES</b></div>
             <div>🏆 <b>SUPERA TU RÉCORD</b></div>
         `;
@@ -276,50 +245,69 @@ function obtenerReglas(tipo) {
 
     if (tipo === "reflejos") {
 
-        return `
+        reglasInicio.innerHTML = `
             <div>⚡ <b>ESPERA</b> la señal</div>
-            <div>🎯 <b>REACCIONA</b> rápidamente</div>
-            <div>🔥 <b>CONSIGUE</b> combos</div>
-            <div>🏆 <b>SUPERA</b> tu récord</div>
+            <div>🎯 <b>TOCA</b> rápidamente</div>
+            <div>🔥 <b>MEJORA</b> tus reacciones</div>
+            <div>🏆 <b>SUPERA TU RÉCORD</b></div>
         `;
 
     }
 
     if (tipo === "memoria") {
 
-        return `
-            <div>🧠 <b>OBSERVA</b> la secuencia</div>
-            <div>🔢 <b>RECUERDA</b> los números</div>
-            <div>🎯 <b>ELIGE</b> correctamente</div>
-            <div>🏆 <b>SUPERA</b> tu récord</div>
+        reglasInicio.innerHTML = `
+            <div>🧠 <b>OBSERVA</b> las cartas</div>
+            <div>🔎 <b>ENCUENTRA</b> las parejas</div>
+            <div>🔥 <b>COMBINA</b> correctamente</div>
+            <div>🏆 <b>SUPERA TU RÉCORD</b></div>
         `;
 
     }
 
     if (tipo === "puzzle") {
 
-        return `
+        reglasInicio.innerHTML = `
             <div>🧩 <b>RESUELVE</b> el reto</div>
             <div>⚡ <b>PIENSA</b> rápidamente</div>
-            <div>🔥 <b>SUMA</b> puntos</div>
-            <div>🏆 <b>SUPERA</b> tu récord</div>
+            <div>🔥 <b>CONSIGUE</b> puntos</div>
+            <div>🏆 <b>SUPERA TU RÉCORD</b></div>
         `;
 
     }
 
-    return `
-        <div>🚀 <b>CONTROLA</b> tu nave</div>
-        <div>💥 <b>EVITA</b> obstáculos</div>
-        <div>🔥 <b>SOBREVIVE</b> el mayor tiempo</div>
-        <div>🏆 <b>SUPERA</b> tu récord</div>
-    `;
+    if (tipo === "carrera") {
+
+        reglasInicio.innerHTML = `
+            <div>🚀 <b>MUÉVETE</b> rápidamente</div>
+            <div>💥 <b>EVITA</b> obstáculos</div>
+            <div>🔥 <b>SOBREVIVE</b> todo lo posible</div>
+            <div>🏆 <b>SUPERA TU RÉCORD</b></div>
+        `;
+
+    }
+
+    record =
+        Number(
+            localStorage.getItem(
+                "fuegoXRecord_" + juegoActual
+            )
+        ) || 0;
+
+    recordTexto.textContent = record;
+
+    menuArcade.classList.add("oculto");
+
+    panelJuego.classList.remove("oculto");
+
+    pantallaInicio.classList.remove("oculto");
 
 }
 
 
-/* =====================================================
-   MENÚ
-===================================================== */
+/* =========================================================
+   VOLVER AL MENÚ
+========================================================= */
 
 function volverMenu() {
 
@@ -336,12 +324,14 @@ function volverMenu() {
     pantallaFinal.classList.add("oculto");
 
     panelJuego.classList.add("oculto");
-
     menuArcade.classList.remove("oculto");
 
 }
 
-btnMenu.addEventListener("click", volverMenu);
+btnMenu.addEventListener(
+    "click",
+    volverMenu
+);
 
 btnVolverMenu.addEventListener(
     "click",
@@ -354,9 +344,9 @@ btnFinalMenu.addEventListener(
 );
 
 
-/* =====================================================
+/* =========================================================
    INTERFAZ
-===================================================== */
+========================================================= */
 
 function actualizarInterfaz() {
 
@@ -374,18 +364,21 @@ function actualizarInterfaz() {
     tiempoTexto.textContent =
         tiempo;
 
-    barra.style.width =
+    const porcentaje =
         Math.max(
             0,
             (tiempo / 30) * 100
-        ) + "%";
+        );
+
+    barra.style.width =
+        porcentaje + "%";
 
 }
 
 
-/* =====================================================
-   INICIAR
-===================================================== */
+/* =========================================================
+   INICIAR JUEGO
+========================================================= */
 
 function iniciarJuego() {
 
@@ -398,6 +391,10 @@ function iniciarJuego() {
     vidas = 3;
     tiempo = 30;
 
+    juegoDatos = {};
+
+    efectos.innerHTML = "";
+
     juegoActivo = true;
 
     actualizarInterfaz();
@@ -405,49 +402,60 @@ function iniciarJuego() {
     pantallaInicio.classList.add("oculto");
     pantallaFinal.classList.add("oculto");
 
-    efectos.innerHTML = "";
-
     objetivo.style.display = "none";
     bonificacion.style.display = "none";
 
+
+    /* JUEGO 1 */
+
     if (juegoActual === "objetivo") {
 
-        iniciarObjetivo();
+        iniciarJuegoObjetivo();
 
     }
 
-    if (juegoActual === "reflejos") {
 
-        iniciarReflejos();
+    /* JUEGO 2 */
 
-    }
+    else if (juegoActual === "reflejos") {
 
-    if (juegoActual === "memoria") {
-
-        iniciarMemoria();
+        iniciarJuegoReflejos();
 
     }
 
-    if (juegoActual === "puzzle") {
 
-        iniciarPuzzle();
+    /* JUEGO 3 */
 
-    }
+    else if (juegoActual === "memoria") {
 
-    if (juegoActual === "carrera") {
-
-        iniciarCarrera();
+        iniciarJuegoMemoria();
 
     }
 
-    iniciarTemporizador();
+
+    /* JUEGO 4 */
+
+    else if (juegoActual === "puzzle") {
+
+        iniciarJuegoPuzzle();
+
+    }
+
+
+    /* JUEGO 5 */
+
+    else if (juegoActual === "carrera") {
+
+        iniciarJuegoCarrera();
+
+    }
 
 }
 
 
-/* =====================================================
-   TEMPORIZADOR
-===================================================== */
+/* =========================================================
+   TEMPORIZADOR GENERAL
+========================================================= */
 
 function iniciarTemporizador() {
 
@@ -470,40 +478,41 @@ function iniciarTemporizador() {
 }
 
 
-/* =====================================================
+/* =========================================================
    DETENER
-===================================================== */
+========================================================= */
 
 function detenerJuego() {
 
     clearInterval(temporizador);
     clearInterval(movimiento);
-
     clearTimeout(bonificacionTimer);
-    clearTimeout(retoTimer);
 
     temporizador = null;
     movimiento = null;
     bonificacionTimer = null;
-    retoTimer = null;
 
 }
 
 
-/* =====================================================
+/* =========================================================
    JUEGO 1
    ATRAPA EL OBJETIVO
-===================================================== */
+========================================================= */
 
-function iniciarObjetivo() {
+function iniciarJuegoObjetivo() {
 
     mostrarNivel();
+
+    objetivo.style.display = "block";
 
     colocarObjetivo();
 
     iniciarMovimiento();
 
     programarBonificacion();
+
+    iniciarTemporizador();
 
 }
 
@@ -535,7 +544,7 @@ function colocarObjetivo() {
 
     if (!juegoActivo) return;
 
-    const margen = 60;
+    const margen = 55;
 
     const ancho =
         zonaJuego.clientWidth;
@@ -586,13 +595,13 @@ objetivo.addEventListener(
 
         event.stopPropagation();
 
-        if (
-            !juegoActivo ||
-            juegoActual !== "objetivo"
-        ) return;
+        if (!juegoActivo) return;
+
+        if (juegoActual !== "objetivo") return;
 
         sonido(
-            500 + combo * 35
+            500 + combo * 35,
+            0.09
         );
 
         const rect =
@@ -611,24 +620,22 @@ objetivo.addEventListener(
             zonaRect.top +
             rect.height / 2;
 
+        crearExplosion(x, y);
+
         const ganados =
             10 * combo;
 
         puntos += ganados;
 
-        combo =
-            Math.min(
-                10,
-                combo + 1
-            );
+        combo++;
 
-        mejorCombo =
-            Math.max(
-                mejorCombo,
-                combo
-            );
+        if (combo > 10) combo = 10;
 
-        crearExplosion(x, y);
+        if (combo > mejorCombo) {
+
+            mejorCombo = combo;
+
+        }
 
         mostrarPuntos(
             x,
@@ -648,30 +655,31 @@ objetivo.addEventListener(
 );
 
 
-/* =====================================================
-   BONIFICACIÓN
-===================================================== */
+/* =========================================================
+   BONIFICACIÓN JUEGO 1
+========================================================= */
 
 function programarBonificacion() {
+
+    clearTimeout(bonificacionTimer);
 
     bonificacionTimer =
         setTimeout(() => {
 
-            if (
-                !juegoActivo ||
-                juegoActual !== "objetivo"
-            ) return;
+            if (!juegoActivo) return;
 
             colocarBonificacion();
 
             programarBonificacion();
 
-        }, 4500 + Math.random() * 3500);
+        }, 5000 + Math.random() * 4000);
 
 }
 
 
 function colocarBonificacion() {
+
+    if (!juegoActivo) return;
 
     const margen = 60;
 
@@ -681,25 +689,27 @@ function colocarBonificacion() {
     const alto =
         zonaJuego.clientHeight;
 
+    const x =
+        margen +
+        Math.random() *
+        Math.max(
+            1,
+            ancho - margen * 2
+        );
+
+    const y =
+        margen +
+        Math.random() *
+        Math.max(
+            1,
+            alto - margen * 2
+        );
+
     bonificacion.style.left =
-        (
-            margen +
-            Math.random() *
-            Math.max(
-                1,
-                ancho - margen * 2
-            )
-        ) + "px";
+        x + "px";
 
     bonificacion.style.top =
-        (
-            margen +
-            Math.random() *
-            Math.max(
-                1,
-                alto - margen * 2
-            )
-        ) + "px";
+        y + "px";
 
     bonificacion.style.display =
         "block";
@@ -724,10 +734,9 @@ bonificacion.addEventListener(
 
         event.stopPropagation();
 
-        if (
-            !juegoActivo ||
-            juegoActual !== "objetivo"
-        ) return;
+        if (!juegoActivo) return;
+
+        if (juegoActual !== "objetivo") return;
 
         const rect =
             bonificacion.getBoundingClientRect();
@@ -745,19 +754,19 @@ bonificacion.addEventListener(
             zonaRect.top +
             rect.height / 2;
 
-        const ganados =
+        const bonus =
             50 * combo;
 
-        puntos += ganados;
+        puntos += bonus;
 
-        sonido(900, 0.15);
+        sonido(850, 0.18);
 
         crearExplosion(x, y);
 
         mostrarPuntos(
             x,
             y,
-            "+" + ganados
+            "+" + bonus
         );
 
         bonificacion.style.display =
@@ -769,9 +778,9 @@ bonificacion.addEventListener(
 );
 
 
-/* =====================================================
-   CLIC ZONA
-===================================================== */
+/* =========================================================
+   FALLAR JUEGO 1
+========================================================= */
 
 zonaJuego.addEventListener(
     "click",
@@ -779,17 +788,15 @@ zonaJuego.addEventListener(
 
         if (!juegoActivo) return;
 
+        if (juegoActual !== "objetivo") return;
+
         if (
-            juegoActual === "objetivo" &&
-            (
-                event.target === zonaJuego ||
-                event.target.classList.contains(
-                    "instruccion"
-                )
-            )
+            event.target === zonaJuego ||
+            event.target.classList.contains("instruccion")
         ) {
 
             combo = 1;
+
             vidas--;
 
             sonido(180, 0.12);
@@ -813,730 +820,9 @@ zonaJuego.addEventListener(
 );
 
 
-/* =====================================================
-   JUEGO 2
-   REFLEJOS X
-===================================================== */
-
-function iniciarReflejos() {
-
-    mostrarMensajeCentral(
-        "⚡",
-        "ESPERA...",
-        "Cuando aparezca VERDE, toca"
-    );
-
-    retoTimer =
-        setTimeout(
-            activarReflejo,
-            1500 + Math.random() * 2500
-        );
-
-}
-
-
-function activarReflejo() {
-
-    if (
-        !juegoActivo ||
-        juegoActual !== "reflejos"
-    ) return;
-
-    estadoReto = "activo";
-
-    mostrarMensajeCentral(
-        "🟢",
-        "¡AHORA!",
-        "¡TOCA!"
-    );
-
-    sonido(900, 0.12);
-
-    zonaJuego.onclick =
-        reaccionReflejo;
-
-}
-
-
-function reaccionReflejo() {
-
-    if (
-        !juegoActivo ||
-        juegoActual !== "reflejos"
-    ) return;
-
-    if (estadoReto !== "activo") return;
-
-    puntos += 25 * combo;
-
-    combo =
-        Math.min(
-            10,
-            combo + 1
-        );
-
-    mejorCombo =
-        Math.max(
-            mejorCombo,
-            combo
-        );
-
-    sonido(1000, 0.1);
-
-    mostrarPuntos(
-        zonaJuego.clientWidth / 2,
-        zonaJuego.clientHeight / 2,
-        "+" + (25 * (combo - 1))
-    );
-
-    estadoReto = null;
-
-    zonaJuego.onclick = null;
-
-    actualizarInterfaz();
-
-    retoTimer =
-        setTimeout(
-            activarReflejo,
-            700 + Math.random() * 1800
-        );
-
-}
-
-
-/* =====================================================
-   JUEGO 3
-   MEMORIA X
-===================================================== */
-
-let secuencia = [];
-let respuestaMemoria = [];
-
-
-function iniciarMemoria() {
-
-    secuencia = [];
-
-    respuestaMemoria = [];
-
-    generarMemoria();
-
-}
-
-
-function generarMemoria() {
-
-    secuencia = [];
-
-    for (
-        let i = 0;
-        i < 3 + nivel;
-        i++
-    ) {
-
-        secuencia.push(
-            Math.floor(
-                Math.random() * 9
-            ) + 1
-        );
-
-    }
-
-    mostrarSecuencia();
-
-}
-
-
-function mostrarSecuencia() {
-
-    mostrarMensajeCentral(
-        "🧠",
-        secuencia.join("  "),
-        "MEMORIZA LA SECUENCIA"
-    );
-
-    retoTimer =
-        setTimeout(
-            pedirMemoria,
-            2500
-        );
-
-}
-
-
-function pedirMemoria() {
-
-    if (
-        !juegoActivo ||
-        juegoActual !== "memoria"
-    ) return;
-
-    mostrarMensajeCentral(
-        "🧠",
-        "¿CUÁL ERA?",
-        "Escribe los números con el teclado"
-    );
-
-    estadoReto = "";
-
-}
-
-
-document.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (
-            !juegoActivo ||
-            juegoActual !== "memoria"
-        ) return;
-
-        if (
-            !/^[1-9]$/.test(event.key)
-        ) return;
-
-        estadoReto += event.key;
-
-        mostrarMensajeCentral(
-            "🧠",
-            estadoReto,
-            "ENTER PARA COMPROBAR"
-        );
-
-        if (event.key === "Enter") {
-
-            comprobarMemoria();
-
-        }
-
-    }
-);
-
-
-function comprobarMemoria() {
-
-    if (!estadoReto) return;
-
-    const correcta =
-        estadoReto ===
-        secuencia.join("");
-
-    if (correcta) {
-
-        puntos += 50 * combo;
-
-        combo =
-            Math.min(
-                10,
-                combo + 1
-            );
-
-        mejorCombo =
-            Math.max(
-                mejorCombo,
-                combo
-            );
-
-        sonido(1000, 0.15);
-
-        mostrarMensajeCentral(
-            "✅",
-            "¡CORRECTO!",
-            "+ PUNTOS"
-        );
-
-        actualizarInterfaz();
-
-    } else {
-
-        vidas--;
-
-        combo = 1;
-
-        sonido(180, 0.15);
-
-        mostrarMensajeCentral(
-            "❌",
-            "INCORRECTO",
-            "La secuencia era " +
-            secuencia.join("")
-        );
-
-        actualizarInterfaz();
-
-        if (vidas <= 0) {
-
-            terminarJuego();
-
-            return;
-
-        }
-
-    }
-
-    estadoReto = "";
-
-    retoTimer =
-        setTimeout(
-            generarMemoria,
-            1200
-        );
-
-}
-
-
-/* =====================================================
-   JUEGO 4
-   PUZZLE X
-===================================================== */
-
-let respuestaPuzzle = 0;
-
-
-function iniciarPuzzle() {
-
-    nuevoPuzzle();
-
-}
-
-
-function nuevoPuzzle() {
-
-    const a =
-        Math.floor(
-            Math.random() * 10
-        ) + 1;
-
-    const b =
-        Math.floor(
-            Math.random() * 10
-        ) + 1;
-
-    respuestaPuzzle =
-        a + b;
-
-    mostrarMensajeCentral(
-        "🧩",
-        a + " + " + b + " = ?",
-        "Escribe la respuesta y presiona ENTER"
-    );
-
-    estadoReto = "";
-
-}
-
-
-document.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (
-            !juegoActivo ||
-            juegoActual !== "puzzle"
-        ) return;
-
-        if (
-            event.key >= "0" &&
-            event.key <= "9"
-        ) {
-
-            estadoReto += event.key;
-
-            mostrarMensajeCentral(
-                "🧩",
-                estadoReto,
-                "ENTER PARA COMPROBAR"
-            );
-
-        }
-
-        if (
-            event.key === "Enter" &&
-            estadoReto !== ""
-        ) {
-
-            const respuesta =
-                Number(estadoReto);
-
-            if (
-                respuesta === respuestaPuzzle
-            ) {
-
-                puntos += 40 * combo;
-
-                combo =
-                    Math.min(
-                        10,
-                        combo + 1
-                    );
-
-                mejorCombo =
-                    Math.max(
-                        mejorCombo,
-                        combo
-                    );
-
-                sonido(1000, 0.1);
-
-                mostrarMensajeCentral(
-                    "✅",
-                    "¡CORRECTO!",
-                    "+ PUNTOS"
-                );
-
-                actualizarInterfaz();
-
-                setTimeout(
-                    nuevoPuzzle,
-                    800
-                );
-
-            } else {
-
-                vidas--;
-
-                combo = 1;
-
-                sonido(180, 0.12);
-
-                mostrarMensajeCentral(
-                    "❌",
-                    "¡ERROR!",
-                    "Inténtalo de nuevo"
-                );
-
-                actualizarInterfaz();
-
-                if (vidas <= 0) {
-
-                    terminarJuego();
-
-                }
-
-            }
-
-            estadoReto = "";
-
-        }
-
-    }
-);
-
-
-/* =====================================================
-   JUEGO 5
-   CARRERA X
-===================================================== */
-
-let jugador;
-let obstaculos = [];
-let carreraTimer = null;
-
-
-function iniciarCarrera() {
-
-    crearCarrera();
-
-}
-
-
-function crearCarrera() {
-
-    jugador = {
-        x: 50,
-        y: zonaJuego.clientHeight / 2
-    };
-
-    obstaculos = [];
-
-    efectos.innerHTML = `
-        <div
-            id="jugador-carrera"
-            style="
-                position:absolute;
-                font-size:42px;
-                left:50px;
-                top:50%;
-                transform:translate(-50%,-50%);
-                z-index:30;
-            "
-        >🚀</div>
-    `;
-
-    crearObstaculoCarrera();
-
-    carreraTimer =
-        setInterval(
-            moverCarrera,
-            45
-        );
-
-}
-
-
-function crearObstaculoCarrera() {
-
-    if (
-        !juegoActivo ||
-        juegoActual !== "carrera"
-    ) return;
-
-    const obstaculo =
-        document.createElement("div");
-
-    obstaculo.textContent = "🔥";
-
-    obstaculo.style.position =
-        "absolute";
-
-    obstaculo.style.fontSize =
-        "35px";
-
-    obstaculo.style.left =
-        zonaJuego.clientWidth + "px";
-
-    obstaculo.style.top =
-        (
-            80 +
-            Math.random() *
-            Math.max(
-                30,
-                zonaJuego.clientHeight - 160
-            )
-        ) + "px";
-
-    obstaculo.dataset.x =
-        zonaJuego.clientWidth;
-
-    efectos.appendChild(
-        obstaculo
-    );
-
-    obstaculos.push(
-        obstaculo
-    );
-
-    setTimeout(
-        crearObstaculoCarrera,
-        Math.max(
-            500,
-            1300 - nivel * 80
-        )
-    );
-
-}
-
-
-function moverCarrera() {
-
-    if (
-        !juegoActivo ||
-        juegoActual !== "carrera"
-    ) return;
-
-    const nave =
-        document.getElementById(
-            "jugador-carrera"
-        );
-
-    if (!nave) return;
-
-    obstaculos.forEach(
-        obstaculo => {
-
-            let x =
-                Number(
-                    obstaculo.dataset.x
-                );
-
-            x -=
-                6 + nivel * 0.5;
-
-            obstaculo.dataset.x =
-                x;
-
-            obstaculo.style.left =
-                x + "px";
-
-            if (x < -60) {
-
-                obstaculo.remove();
-
-                puntos += 5;
-
-                actualizarInterfaz();
-
-            }
-
-            const naveRect =
-                nave.getBoundingClientRect();
-
-            const obstaculoRect =
-                obstaculo.getBoundingClientRect();
-
-            if (
-                naveRect.left <
-                obstaculoRect.right &&
-                naveRect.right >
-                obstaculoRect.left &&
-                naveRect.top <
-                obstaculoRect.bottom &&
-                naveRect.bottom >
-                obstaculoRect.top
-            ) {
-
-                obstaculo.remove();
-
-                vidas--;
-
-                combo = 1;
-
-                sonido(150, 0.2);
-
-                actualizarInterfaz();
-
-                if (vidas <= 0) {
-
-                    terminarJuego();
-
-                }
-
-            }
-
-        }
-    );
-
-}
-
-
-/* =====================================================
-   CONTROL DE CARRERA
-===================================================== */
-
-document.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (
-            !juegoActivo ||
-            juegoActual !== "carrera"
-        ) return;
-
-        if (
-            event.key === "ArrowUp" ||
-            event.key === "ArrowDown"
-        ) {
-
-            event.preventDefault();
-
-            const nave =
-                document.getElementById(
-                    "jugador-carrera"
-                );
-
-            if (!nave) return;
-
-            let top =
-                parseFloat(
-                    nave.style.top
-                );
-
-            if (
-                event.key === "ArrowUp"
-            ) {
-
-                top -= 45;
-
-            } else {
-
-                top += 45;
-
-            }
-
-            top =
-                Math.max(
-                    70,
-                    Math.min(
-                        zonaJuego.clientHeight - 70,
-                        top
-                    )
-                );
-
-            nave.style.top =
-                top + "px";
-
-        }
-
-    }
-);
-
-
-/* =====================================================
-   MENSAJE CENTRAL
-===================================================== */
-
-function mostrarMensajeCentral(
-    icono,
-    titulo,
-    texto
-) {
-
-    efectos.innerHTML = `
-
-        <div
-            style="
-                position:absolute;
-                inset:0;
-                display:flex;
-                flex-direction:column;
-                align-items:center;
-                justify-content:center;
-                text-align:center;
-                z-index:40;
-                pointer-events:none;
-            "
-        >
-
-            <div
-                style="
-                    font-size:60px;
-                    margin-bottom:15px;
-                "
-            >
-                ${icono}
-            </div>
-
-            <div
-                style="
-                    font-size:30px;
-                    font-weight:900;
-                    color:#fff;
-                    text-shadow:0 0 20px orange;
-                "
-            >
-                ${titulo}
-            </div>
-
-            <div
-                style="
-                    margin-top:10px;
-                    color:#aaa;
-                    font-size:14px;
-                "
-            >
-                ${texto}
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-
-/* =====================================================
+/* =========================================================
    NIVEL
-===================================================== */
+========================================================= */
 
 function comprobarNivel() {
 
@@ -1545,24 +831,15 @@ function comprobarNivel() {
             puntos / 100
         ) + 1;
 
-    if (
-        nuevoNivel > nivel
-    ) {
+    if (nuevoNivel > nivel) {
 
-        nivel =
-            nuevoNivel;
+        nivel = nuevoNivel;
 
         sonido(700, 0.15);
 
         mostrarNivel();
 
-        if (
-            juegoActual === "objetivo"
-        ) {
-
-            iniciarMovimiento();
-
-        }
+        iniciarMovimiento();
 
     }
 
@@ -1587,28 +864,22 @@ function mostrarNivel() {
                     "translateX(-50%) scale(1.25)"
             },
             {
-                opacity: .7,
+                opacity: .75,
                 transform:
                     "translateX(-50%) scale(1)"
             }
         ],
         {
-            duration:700
+            duration: 700
         }
     );
 
 }
 
 
-/* =====================================================
-   COMBO
-===================================================== */
-
 function mostrarCombo() {
 
-    if (
-        combo <= 1
-    ) return;
+    if (combo <= 1) return;
 
     mensajeCombo.textContent =
         "🔥 COMBO x" + combo;
@@ -1616,39 +887,708 @@ function mostrarCombo() {
     mensajeCombo.animate(
         [
             {
-                opacity:0,
+                opacity: 0,
                 transform:
                     "translateX(-50%) scale(.6)"
             },
             {
-                opacity:1,
+                opacity: 1,
                 transform:
                     "translateX(-50%) scale(1.2)"
             },
             {
-                opacity:0,
+                opacity: 0,
                 transform:
                     "translateX(-50%) scale(1)"
             }
         ],
         {
-            duration:600
+            duration: 600
         }
     );
 
 }
 
 
-/* =====================================================
-   EFECTOS
-===================================================== */
+/* =========================================================
+   JUEGO 2
+   REFLEJOS X
+========================================================= */
 
-function crearExplosion(x,y) {
+function iniciarJuegoReflejos() {
+
+    efectos.innerHTML = `
+        <button
+            id="objetivo-reflejos"
+            class="objetivo-reflejos"
+            type="button">
+            ⚡
+        </button>
+    `;
+
+    const objetivoReflejos =
+        document.getElementById(
+            "objetivo-reflejos"
+        );
+
+    juegoDatos.reflejos = {
+        objetivo: objetivoReflejos,
+        espera: false,
+        ronda: 0
+    };
+
+    objetivoReflejos.addEventListener(
+        "click",
+        () => {
+
+            if (!juegoActivo) return;
+
+            if (juegoDatos.reflejos.espera) {
+
+                const ganados =
+                    25 + combo * 5;
+
+                puntos += ganados;
+
+                combo++;
+
+                if (combo > mejorCombo) {
+                    mejorCombo = combo;
+                }
+
+                if (combo > 10) combo = 10;
+
+                sonido(850, 0.1);
+
+                mostrarPuntos(
+                    zonaJuego.clientWidth / 2,
+                    zonaJuego.clientHeight / 2,
+                    "+" + ganados
+                );
+
+                juegoDatos.reflejos.espera = false;
+
+                siguienteReflejo();
+
+                actualizarInterfaz();
+
+            }
+
+        }
+    );
+
+    siguienteReflejo();
+
+    iniciarTemporizador();
+
+}
+
+
+function siguienteReflejo() {
+
+    if (!juegoActivo) return;
+
+    const boton =
+        juegoDatos.reflejos.objetivo;
+
+    boton.style.display = "none";
+
+    juegoDatos.reflejos.espera = false;
+
+    setTimeout(() => {
+
+        if (!juegoActivo) return;
+
+        const margen = 70;
+
+        const x =
+            margen +
+            Math.random() *
+            Math.max(
+                1,
+                zonaJuego.clientWidth -
+                margen * 2
+            );
+
+        const y =
+            margen +
+            Math.random() *
+            Math.max(
+                1,
+                zonaJuego.clientHeight -
+                margen * 2
+            );
+
+        boton.style.left =
+            x + "px";
+
+        boton.style.top =
+            y + "px";
+
+        boton.style.display =
+            "block";
+
+        juegoDatos.reflejos.espera = true;
+
+    }, 500 + Math.random() * 1000);
+
+}
+
+
+/* =========================================================
+   JUEGO 3
+   MEMORIA X
+========================================================= */
+
+function iniciarJuegoMemoria() {
+
+    const simbolos = [
+        "🔥", "🔥",
+        "⭐", "⭐",
+        "⚡", "⚡",
+        "🎯", "🎯",
+        "🚀", "🚀",
+        "💎", "💎"
+    ];
+
+    simbolos.sort(
+        () => Math.random() - 0.5
+    );
+
+    efectos.innerHTML = `
+        <div class="memoria-grid"></div>
+    `;
+
+    const grid =
+        efectos.querySelector(
+            ".memoria-grid"
+        );
+
+    juegoDatos.memoria = {
+        primera: null,
+        bloqueo: false,
+        parejas: 0
+    };
+
+    simbolos.forEach(simbolo => {
+
+        const carta =
+            document.createElement("button");
+
+        carta.type = "button";
+
+        carta.className =
+            "carta-memoria";
+
+        carta.dataset.valor =
+            simbolo;
+
+        carta.textContent = "?";
+
+        carta.addEventListener(
+            "click",
+            () => {
+
+                voltearCarta(carta);
+
+            }
+        );
+
+        grid.appendChild(carta);
+
+    });
+
+    iniciarTemporizador();
+
+}
+
+
+function voltearCarta(carta) {
+
+    if (!juegoActivo) return;
+
+    const datos =
+        juegoDatos.memoria;
+
+    if (
+        datos.bloqueo ||
+        carta.classList.contains("descubierta") ||
+        carta === datos.primera
+    ) return;
+
+    carta.textContent =
+        carta.dataset.valor;
+
+    carta.classList.add(
+        "descubierta"
+    );
+
+    if (!datos.primera) {
+
+        datos.primera = carta;
+
+        return;
+
+    }
+
+    const segunda = carta;
+
+    if (
+        datos.primera.dataset.valor ===
+        segunda.dataset.valor
+    ) {
+
+        sonido(750, 0.12);
+
+        datos.primera = null;
+
+        datos.parejas++;
+
+        puntos += 50 * combo;
+
+        combo++;
+
+        if (combo > 10) combo = 10;
+
+        if (combo > mejorCombo) {
+            mejorCombo = combo;
+        }
+
+        actualizarInterfaz();
+
+        if (datos.parejas >= 6) {
+
+            puntos += 100;
+
+            terminarJuego();
+
+        }
+
+    } else {
+
+        sonido(180, 0.12);
+
+        combo = 1;
+
+        vidas--;
+
+        datos.bloqueo = true;
+
+        actualizarInterfaz();
+
+        setTimeout(() => {
+
+            if (!datos.primera || !segunda) return;
+
+            datos.primera.textContent = "?";
+            segunda.textContent = "?";
+
+            datos.primera.classList.remove(
+                "descubierta"
+            );
+
+            segunda.classList.remove(
+                "descubierta"
+            );
+
+            datos.primera = null;
+            datos.bloqueo = false;
+
+            if (vidas <= 0) {
+
+                terminarJuego();
+
+            }
+
+        }, 700);
+
+    }
+
+}
+
+
+/* =========================================================
+   JUEGO 4
+   PUZZLE X
+========================================================= */
+
+function iniciarJuegoPuzzle() {
+
+    const numero1 =
+        Math.floor(Math.random() * 20) + 5;
+
+    const numero2 =
+        Math.floor(Math.random() * 15) + 2;
+
+    const respuesta =
+        numero1 + numero2;
+
+    juegoDatos.puzzle = {
+        respuesta: respuesta
+    };
+
+    efectos.innerHTML = `
+        <div class="puzzle-juego">
+
+            <h2>🧩 RESUELVE</h2>
+
+            <div class="problema">
+                ${numero1} + ${numero2} = ?
+            </div>
+
+            <input
+                id="respuesta-puzzle"
+                type="number"
+                placeholder="Respuesta"
+                autocomplete="off">
+
+            <button
+                id="btn-puzzle"
+                type="button">
+                COMPROBAR
+            </button>
+
+        </div>
+    `;
+
+    const input =
+        document.getElementById(
+            "respuesta-puzzle"
+        );
+
+    const boton =
+        document.getElementById(
+            "btn-puzzle"
+        );
+
+    boton.addEventListener(
+        "click",
+        comprobarPuzzle
+    );
+
+    input.addEventListener(
+        "keydown",
+        event => {
+
+            if (event.key === "Enter") {
+
+                comprobarPuzzle();
+
+            }
+
+        }
+    );
+
+    input.focus();
+
+    iniciarTemporizador();
+
+}
+
+
+function comprobarPuzzle() {
+
+    if (!juegoActivo) return;
+
+    const input =
+        document.getElementById(
+            "respuesta-puzzle"
+        );
+
+    const valor =
+        Number(input.value);
+
+    if (
+        valor ===
+        juegoDatos.puzzle.respuesta
+    ) {
+
+        sonido(850, 0.12);
+
+        puntos += 75 * combo;
+
+        combo++;
+
+        if (combo > 10) combo = 10;
+
+        if (combo > mejorCombo) {
+            mejorCombo = combo;
+        }
+
+        mostrarPuntos(
+            zonaJuego.clientWidth / 2,
+            zonaJuego.clientHeight / 2,
+            "¡CORRECTO!"
+        );
+
+        actualizarInterfaz();
+
+        crearNuevoPuzzle();
+
+    } else {
+
+        sonido(180, 0.12);
+
+        combo = 1;
+
+        vidas--;
+
+        actualizarInterfaz();
+
+        if (vidas <= 0) {
+
+            terminarJuego();
+
+        }
+
+    }
+
+}
+
+
+function crearNuevoPuzzle() {
+
+    if (!juegoActivo) return;
+
+    const numero1 =
+        Math.floor(Math.random() * 30) + 5;
+
+    const numero2 =
+        Math.floor(Math.random() * 20) + 2;
+
+    juegoDatos.puzzle.respuesta =
+        numero1 + numero2;
+
+    const problema =
+        efectos.querySelector(
+            ".problema"
+        );
+
+    const input =
+        document.getElementById(
+            "respuesta-puzzle"
+        );
+
+    if (!problema || !input) return;
+
+    problema.textContent =
+        `${numero1} + ${numero2} = ?`;
+
+    input.value = "";
+
+    input.focus();
+
+}
+
+
+/* =========================================================
+   JUEGO 5
+   CARRERA X
+========================================================= */
+
+function iniciarJuegoCarrera() {
+
+    efectos.innerHTML = `
+        <div class="carrera-juego">
+
+            <div
+                id="jugador-carrera"
+                class="jugador-carrera">
+                🚀
+            </div>
+
+            <div
+                id="obstaculo-carrera"
+                class="obstaculo-carrera">
+                💥
+            </div>
+
+            <div class="carrera-instruccion">
+                ⬅️ ➡️ USA LAS FLECHAS
+            </div>
+
+        </div>
+    `;
+
+    juegoDatos.carrera = {
+        posicion: 50,
+        velocidad: 1
+    };
+
+    document.addEventListener(
+        "keydown",
+        controlarCarrera
+    );
+
+    colocarObstaculo();
+
+    iniciarTemporizador();
+
+}
+
+
+function controlarCarrera(event) {
+
+    if (
+        !juegoActivo ||
+        juegoActual !== "carrera"
+    ) return;
+
+    if (event.key === "ArrowLeft") {
+
+        juegoDatos.carrera.posicion -= 8;
+
+    }
+
+    if (event.key === "ArrowRight") {
+
+        juegoDatos.carrera.posicion += 8;
+
+    }
+
+    juegoDatos.carrera.posicion =
+        Math.max(
+            8,
+            Math.min(
+                92,
+                juegoDatos.carrera.posicion
+            )
+        );
+
+    const jugador =
+        document.getElementById(
+            "jugador-carrera"
+        );
+
+    if (jugador) {
+
+        jugador.style.left =
+            juegoDatos.carrera.posicion +
+            "%";
+
+    }
+
+}
+
+
+function colocarObstaculo() {
+
+    if (!juegoActivo) return;
+
+    const obstaculo =
+        document.getElementById(
+            "obstaculo-carrera"
+        );
+
+    if (!obstaculo) return;
+
+    obstaculo.style.left =
+        (10 + Math.random() * 80) +
+        "%";
+
+    obstaculo.style.top =
+        "-60px";
+
+    let posicion = -60;
+
+    const intervalo =
+        setInterval(() => {
+
+            if (!juegoActivo) {
+
+                clearInterval(intervalo);
+                return;
+
+            }
+
+            posicion += 4;
+
+            obstaculo.style.top =
+                posicion + "px";
+
+            const jugador =
+                document.getElementById(
+                    "jugador-carrera"
+                );
+
+            const obstaculoX =
+                parseFloat(
+                    obstaculo.style.left
+                );
+
+            const jugadorX =
+                juegoDatos.carrera.posicion;
+
+            if (
+                posicion > 200 &&
+                posicion < 430 &&
+                Math.abs(
+                    obstaculoX -
+                    jugadorX
+                ) < 10
+            ) {
+
+                clearInterval(intervalo);
+
+                sonido(150, 0.2);
+
+                vidas--;
+
+                combo = 1;
+
+                actualizarInterfaz();
+
+                if (vidas <= 0) {
+
+                    terminarJuego();
+
+                    return;
+
+                }
+
+                colocarObstaculo();
+
+                return;
+
+            }
+
+            if (posicion > 500) {
+
+                clearInterval(intervalo);
+
+                puntos += 20 * combo;
+
+                if (combo < 10) {
+
+                    combo++;
+
+                }
+
+                if (combo > mejorCombo) {
+
+                    mejorCombo = combo;
+
+                }
+
+                actualizarInterfaz();
+
+                colocarObstaculo();
+
+            }
+
+        }, 50);
+
+}
+
+
+/* =========================================================
+   EFECTOS
+========================================================= */
+
+function crearExplosion(x, y) {
 
     const efecto =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     efecto.className =
         "explosion";
@@ -1659,28 +1599,21 @@ function crearExplosion(x,y) {
     efecto.style.top =
         y + "px";
 
-    efectos.appendChild(
-        efecto
-    );
+    efectos.appendChild(efecto);
 
-    setTimeout(
-        () => efecto.remove(),
-        500
-    );
+    setTimeout(() => {
+
+        efecto.remove();
+
+    }, 500);
 
 }
 
 
-function mostrarPuntos(
-    x,
-    y,
-    texto
-) {
+function mostrarPuntos(x, y, texto) {
 
     const elemento =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     elemento.className =
         "texto-puntos";
@@ -1694,27 +1627,21 @@ function mostrarPuntos(
     elemento.style.top =
         y + "px";
 
-    efectos.appendChild(
-        elemento
-    );
+    efectos.appendChild(elemento);
 
-    setTimeout(
-        () => elemento.remove(),
-        750
-    );
+    setTimeout(() => {
+
+        elemento.remove();
+
+    }, 750);
 
 }
 
 
-function crearFallo(
-    x,
-    y
-) {
+function crearFallo(x, y) {
 
     const fallo =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     fallo.className =
         "fallo";
@@ -1728,79 +1655,74 @@ function crearFallo(
     fallo.style.top =
         y + "px";
 
-    efectos.appendChild(
-        fallo
-    );
+    efectos.appendChild(fallo);
 
-    setTimeout(
-        () => fallo.remove(),
-        450
-    );
+    setTimeout(() => {
+
+        fallo.remove();
+
+    }, 450);
 
 }
 
 
-/* =====================================================
+/* =========================================================
    MEDALLAS
-===================================================== */
+========================================================= */
 
 function obtenerMedalla() {
 
-    if (
-        puntos >= 500
-    ) {
+    if (puntos >= 500) {
 
         return {
-            texto:"🔥 FUEGO",
-            icono:"🔥"
+            texto: "🔥 FUEGO",
+            icono: "🔥"
         };
 
     }
 
-    if (
-        puntos >= 300
-    ) {
+    if (puntos >= 300) {
 
         return {
-            texto:"🥇 ORO",
-            icono:"🥇"
+            texto: "🥇 ORO",
+            icono: "🥇"
         };
 
     }
 
-    if (
-        puntos >= 150
-    ) {
+    if (puntos >= 150) {
 
         return {
-            texto:"🥈 PLATA",
-            icono:"🥈"
+            texto: "🥈 PLATA",
+            icono: "🥈"
         };
 
     }
 
     return {
-        texto:"🥉 BRONCE",
-        icono:"🥉"
+        texto: "🥉 BRONCE",
+        icono: "🥉"
     };
 
 }
 
 
-/* =====================================================
+/* =========================================================
    TERMINAR
-===================================================== */
+========================================================= */
 
 function terminarJuego() {
 
-    if (
-        !juegoActivo
-    ) return;
+    if (!juegoActivo) return;
 
-    juegoActivo =
-        false;
+    juegoActivo = false;
 
     detenerJuego();
+
+    document.removeEventListener(
+        "keydown",
+        controlarCarrera
+    );
 
     objetivo.style.display =
         "none";
@@ -1826,16 +1748,12 @@ function terminarJuego() {
     iconoFinal.textContent =
         resultado.icono;
 
-    if (
-        puntos > record
-    ) {
+    if (puntos > record) {
 
-        record =
-            puntos;
+        record = puntos;
 
         localStorage.setItem(
-            "fuegoXRecord_" +
-            juegoActual,
+            "fuegoXRecord_" + juegoActual,
             record
         );
 
@@ -1845,10 +1763,33 @@ function terminarJuego() {
         mensajeFinal.textContent =
             "🏆 ¡NUEVO RÉCORD!";
 
-    } else {
+    }
+
+    else if (puntos >= 500) {
 
         mensajeFinal.textContent =
-            "🔥 ¡Inténtalo nuevamente!";
+            "🔥 ¡NIVEL FUEGO!";
+
+    }
+
+    else if (puntos >= 300) {
+
+        mensajeFinal.textContent =
+            "⚡ ¡PARTIDA INCREÍBLE!";
+
+    }
+
+    else if (puntos >= 150) {
+
+        mensajeFinal.textContent =
+            "⭐ ¡MUY BUENA PARTIDA!";
+
+    }
+
+    else {
+
+        mensajeFinal.textContent =
+            "🎯 ¡Puedes superar esa puntuación!";
 
     }
 
@@ -1859,9 +1800,9 @@ function terminarJuego() {
 }
 
 
-/* =====================================================
+/* =========================================================
    BOTONES
-===================================================== */
+========================================================= */
 
 btnJugar.addEventListener(
     "click",
@@ -1884,9 +1825,9 @@ btnOtra.addEventListener(
 );
 
 
-/* =====================================================
-   TECLADO
-===================================================== */
+/* =========================================================
+   ENTER
+========================================================= */
 
 document.addEventListener(
     "keydown",
@@ -1908,10 +1849,8 @@ document.addEventListener(
 );
 
 
-/* =====================================================
+/* =========================================================
    INICIO
-===================================================== */
-
-cargarRecord();
+========================================================= */
 
 actualizarInterfaz();
